@@ -1,0 +1,212 @@
+
+# Week 1: Git
+
+1. Git thực sự lưu trữ dữ liệu như thế nào? Các đối tượng (objects) như blob, tree, commit, và tag có quan hệ gì với nhau trong hệ thống lưu trữ phân tán của Git?
+
+- Answer:
++Blob:
+Blob (binary large object) là đối tượng lưu trữ nội dung của các tệp trong kho lưu trữ Git. Nó không chứa tên tệp hay thông tin về vị trí của tệp trong cây thư mục, mà chỉ chứa dữ liệu của tệp đó.
+Mỗi blob có một mã băm (hash) duy nhất, thường là SHA-1, giúp Git nhận diện và quản lý các phiên bản khác nhau của tệp.
+
++Tree:
+Tree là đối tượng đại diện cho cấu trúc thư mục. Nó liên kết các blob với tên tệp và thông tin về các thư mục chứa chúng.
+Một tree có thể chứa nhiều mục, mỗi mục có thể là một blob (tệp) hoặc một tree con (thư mục con). Các tree giúp Git xây dựng cấu trúc cây thư mục cho dự án.
+
++Commit:
+Commit là đối tượng lưu trữ thông tin về một phiên bản của dự án. Nó chứa thông tin như:
+Mã băm của tree (đại diện cho cấu trúc thư mục của commit).
+Mã băm của commit trước đó (cha của commit, giúp tạo thành lịch sử của các thay đổi).
+Thông tin tác giả, ngày giờ, và thông điệp commit.
+Commit cho phép Git theo dõi sự thay đổi của dự án qua thời gian.
+
++Tag:
+Tag là đối tượng dùng để đánh dấu một commit cụ thể, thường được sử dụng để đánh dấu các phiên bản phát hành (release).
+Tag có thể là annotated (chứa thông tin chi tiết như tác giả, ngày tạo và thông điệp) hoặc lightweight (chỉ đơn giản là một tên cho một commit
+
++Mối quan hệ giữa các đối tượng:
+Commit trỏ tới một tree, đại diện cho trạng thái của các tệp và thư mục tại thời điểm commit.
+Tree trỏ tới các blob (tệp dữ liệu) hoặc có thể trỏ tới các tree con (nếu có thư mục con).
+Tag trỏ tới một commit, dùng để đánh dấu các điểm quan trọng trong lịch sử của repository.
+
+2. Khi ta di chuyển giữa các commit, Git làm gì dưới lớp vỏ bọc của nó? HEAD thực chất là gì và nó tác động thế nào đến trạng thái hiện tại của repository?
+
+- Answer:
++Di chuyển giữa các commit trong Git:
+Khi sử dụng các lệnh như git checkout <commit_hash> hoặc git reset, Git sẽ thay đổi HEAD để chỉ đến commit mới mà bạn muốn di chuyển đến. Điều này sẽ thay đổi các đối tượng sau:
+
++HEAD trỏ đến một commit cụ thể.
+Cấu trúc thư mục và các tệp trong repository sẽ được cập nhật để phản ánh nội dung của commit đó.
+Dưới lớp vỏ bọc của Git, thực tế là Git sẽ làm việc với commit hash của các commit, và khi thay đổi commit, Git sẽ:
+Tải lại tree object tương ứng với commit đó.
+Cập nhật các blob objects (nội dung các tệp) theo trạng thái của commit đó.
+Cập nhật thư mục làm việc của bạn để khớp với nội dung của commit.
+
++HEAD trong Git:
+HEAD là một con trỏ đặc biệt trong Git, chỉ đến commit mà đang làm việc hiện tại. Nó không phải là một đối tượng riêng biệt trong cơ sở dữ liệu của Git, mà chỉ là một tham chiếu đến một commit trong lịch sử. Tùy thuộc vào tình huống, HEAD có thể có những giá trị khác nhau:
+
++HEAD trỏ đến nhánh (branch):
+Khi làm việc trên một nhánh (ví dụ: main hoặc feature-branch), HEAD trỏ đến nhánh đó.
+HEAD sẽ trỏ đến commit mới nhất trên nhánh, tức là commit mà nhánh hiện tại đang chỉ đến.
+Mọi thay đổi thực hiện sẽ được ghi vào nhánh này và sẽ tạo ra các commit mới trên nhánh.
+HEAD trong chế độ "detached":
+
+Khi di chuyển đến một commit cụ thể thay vì một nhánh (ví dụ: git checkout <commit_hash>), HEAD sẽ không trỏ đến một nhánh mà sẽ "detached" khỏi bất kỳ nhánh nào.
+Điều này có nghĩa là đang làm việc trên một commit cụ thể và nếu tạo commit mới trong chế độ này, commit đó sẽ không thuộc về bất kỳ nhánh nào, chỉ là một "commit đơn lẻ".
+Nếu không tạo một nhánh mới từ chế độ detached HEAD, các commit mới này sẽ bị mất khi bạn quay lại nhánh trước đó.
+
++Tác động của HEAD đến trạng thái hiện tại của repository:
+Cập nhật thư mục làm việc: Khi HEAD di chuyển giữa các commit, Git sẽ cập nhật thư mục làm việc của bạn để phản ánh trạng thái của commit mà HEAD đang trỏ tới.
+Xác định commit kế tiếp: HEAD quyết định commit tiếp theo sẽ được ghi nhận khi bạn thực hiện một thay đổi. Nếu HEAD trỏ tới nhánh, commit mới sẽ được thêm vào nhánh đó. Nếu HEAD đang ở chế độ detached, commit mới sẽ không thuộc về bất kỳ nhánh nào trừ khi bạn tạo một nhánh mới.
+Ảnh hưởng đến các thao tác Git khác: Các thao tác như git merge, git rebase, git reset sẽ phụ thuộc vào vị trí của HEAD, vì nó xác định commit hiện tại và quá trình so sánh hoặc hợp nhất với các commit khác.
+
+3. Git có thể tạo hàng nghìn nhánh (branches) gần như tức thì mà không tốn tài nguyên. Điều này hoạt động ra sao về mặt kỹ thuật, và tại sao việc hợp nhất (merge) đôi khi lại dẫn đến xung đột?
+
+- Answer:
++Tạo nhánh nhanh chóng và tiết kiệm tài nguyên:
+Nhánh trong Git thực chất là con trỏ (pointer) đến một commit cụ thể. Khi tạo một nhánh mới trong Git, thực tế không tạo ra một bản sao của toàn bộ các tệp hay commit hiện tại, mà Git chỉ tạo một con trỏ mới (nhánh mới) trỏ tới commit hiện tại (hoặc commit mà chỉ định).
+Điều này có nghĩa là khi tạo nhánh, Git không cần phải sao chép dữ liệu hay tạo ra bất kỳ bản sao vật lý nào của các tệp trong repository. Thay vào đó, nó chỉ tạo ra một tham chiếu đến commit hiện tại, và nhánh này sẽ chia sẻ cùng dữ liệu với nhánh gốc cho đến khi có sự thay đổi (commit mới).
+Ví dụ, nếu có một repository với hàng nghìn commit, khi tạo một nhánh mới, Git chỉ cần lưu trữ một con trỏ tới commit hiện tại (hoặc commit mà nhánh mới muốn trỏ tới), giúp tiết kiệm không gian bộ nhớ và tài nguyên hệ thống.
++Việc hợp nhất (merge) và xung đột:
+Khi làm việc với nhiều nhánh trong Git và kết hợp chúng lại với nhau thông qua thao tác merge, Git sẽ tìm cách hợp nhất các thay đổi từ các nhánh khác nhau. Tuy nhiên, đôi khi quá trình hợp nhất này có thể dẫn đến xung đột. Điều này xảy ra khi Git không thể tự động xác định cách hợp nhất các thay đổi từ các nhánh. Các lý do phổ biến bao gồm:
+
+a. Xung đột trong cùng một phần của tệp:
+Nếu hai nhánh đã thay đổi cùng một phần của cùng một tệp, Git không thể tự động quyết định thay đổi nào nên giữ lại, vì vậy nó sẽ tạo ra một xung đột.
+Ví dụ: Một nhánh thay đổi dòng 10 của tệp A, trong khi nhánh khác cũng thay đổi dòng 10 của tệp A, Git không thể tự động quyết định giữa hai thay đổi này.
+b. Xung đột trong việc thay đổi tên tệp hoặc di chuyển tệp:
+Nếu một nhánh di chuyển một tệp và nhánh khác lại thực hiện thay đổi trong tệp đó, Git có thể gặp khó khăn trong việc xác định xem tệp đã được di chuyển hay thay đổi, dẫn đến xung đột.
+c. Xung đột trong việc chỉnh sửa các phần khác nhau của cấu trúc dự án:
+Nếu các nhánh thay đổi cấu trúc thư mục hoặc thêm các tệp với tên giống nhau trong các thư mục khác nhau, Git có thể không tự động giải quyết những thay đổi này mà cần sự can thiệp của người dùng.
+
++Cách Git giải quyết merge:
+Git sử dụng thuật toán three-way merge để hợp nhất các nhánh:
+Cơ sở chung (common ancestor): Git sẽ tìm commit chung gần nhất của cả hai nhánh, tức là commit mà cả hai nhánh bắt đầu từ đó.
+Nhánh hiện tại và nhánh được hợp nhất: Git sẽ so sánh thay đổi giữa nhánh hiện tại và nhánh muốn hợp nhất từ commit chung cho đến các commit cuối cùng của mỗi nhánh.
+Hợp nhất tự động: Git sẽ cố gắng hợp nhất thay đổi từ hai nhánh. Nếu không có xung đột, quá trình này sẽ tự động và Git sẽ tạo ra một commit mới để ghi nhận việc hợp nhất.
+Xung đột: Nếu có xung đột, Git sẽ đánh dấu các tệp có xung đột và yêu cầu người dùng giải quyết. Người dùng cần phải chỉnh sửa các tệp này, quyết định giữ thay đổi nào, sau đó xác nhận hợp nhất.
+4. Khi ta thêm file vào staging area, thực chất Git làm gì? Điều gì thực sự thay đổi khi ta chạy lệnh git commit?
+
+- Answer:
++Khi ta thêm tệp vào staging area:
+
+Khi sử dụng lệnh git add <file>, Git thực hiện các bước sau:
+Tạo bản sao tạm thời (snapshot): Git không sao chép tệp hoàn toàn vào staging area, mà nó lưu lại một bản sao tạm thời (snapshot) của tệp. Thực chất, Git sẽ tính toán checksum (hash) của tệp và lưu trữ thông tin về tệp đó trong cơ sở dữ liệu của Git (cụ thể là trong thư mục .git/objects).
+
+Đánh dấu tệp để chuẩn bị cho commit: Khi bạn thêm tệp vào staging area, Git sẽ theo dõi tệp đó, đánh dấu nó là đã được chuẩn bị để được commit vào lần tiếp theo bạn thực hiện lệnh git commit. Staging area giống như một khu vực tạm thời chứa các thay đổi mà bạn muốn ghi lại trong lịch sử commit.
+
+Không thay đổi lịch sử repository: Việc thêm tệp vào staging area không thay đổi lịch sử của repository. Chỉ là đã chuẩn bị sẵn sàng các thay đổi để lưu lại trong commit tiếp theo.
+
++Khi chạy lệnh git commit:
+Khi chạy lệnh git commit, Git sẽ thực hiện các bước sau:
+
+Tạo commit object: Git tạo một đối tượng commit mới trong cơ sở dữ liệu của Git, lưu lại thông tin về commit này. Commit này bao gồm:
+
+Thông tin về tác giả (author), ngày giờ của commit.
+Thông điệp commit (commit message) mà bạn cung cấp.
+Các đối tượng tree (tree object) tương ứng với trạng thái của các tệp trong commit. Tree object này trỏ tới các blob (dữ liệu tệp) trong staging area.
+Chỉ số (hash) của commit trước đó (parent commit). Điều này giúp Git xây dựng lịch sử thay đổi theo dạng chuỗi liên kết (linked list).
+Chuyển đổi từ staging area vào lịch sử repository: Git sẽ lấy các thay đổi từ staging area, tức là các tệp mà bạn đã thêm vào staging bằng lệnh git add, và tạo ra một commit object chứa các thông tin này.
+
+Nếu thêm, sửa hoặc xóa tệp, những thay đổi này sẽ được ghi nhận trong commit mới. Git lưu trữ một snapshot của các tệp trong trạng thái đó và gắn commit đó vào lịch sử dự án.
+Cập nhật con trỏ HEAD và nhánh hiện tại: Sau khi commit hoàn tất, Git sẽ di chuyển con trỏ HEAD (và nhánh hiện tại) đến commit mới vừa tạo. Điều này đồng nghĩa với việc commit này trở thành commit hiện tại trong repository.
+
+Staging area được làm sạch: Sau khi commit được thực hiện, staging area (vùng tạm) sẽ được làm sạch, tức là tất cả các tệp đã được commit sẽ không còn nằm trong staging area nữa. Staging area chỉ chứa những thay đổi mới mà bạn chưa commit.
+
+5. Git phân biệt working directory, staging area và repository như thế nào? Tại sao có những thay đổi được theo dõi nhưng chưa được commit?
+
+- Answer:
+Git phân biệt ba khu vực sau:
+Working Directory: Là thư mục làm việc nơi bạn chỉnh sửa các tệp. Các thay đổi ở đây chưa được Git theo dõi trừ khi bạn thêm chúng vào staging area.
+Staging Area: Khu vực tạm thời lưu trữ các thay đổi bạn muốn commit. Khi bạn chạy git add, các thay đổi sẽ được thêm vào staging area.
+Repository: Là nơi Git lưu trữ lịch sử commit của dự án. Khi bạn chạy git commit, các thay đổi từ staging area sẽ được ghi vào repository.
+Tại sao có thay đổi được theo dõi nhưng chưa được commit?
+Các thay đổi đã được theo dõi khi bạn chỉnh sửa tệp và Git nhận diện chúng (thông qua git add), nhưng chưa được commit vì chúng vẫn chưa được ghi vào lịch sử repository cho đến khi bạn thực hiện git commit.
+
+6. Git lưu trữ thay đổi của ta ở đâu? Làm thế nào Git có thể khôi phục những thay đổi đã bị "stash" một cách chính xác?
+
+- Answer:
++Git lưu trữ thay đổi ở đâu?
+Repository: Git lưu trữ lịch sử của các commit trong thư mục .git (trong thư mục gốc của repository). Các commit này bao gồm toàn bộ thay đổi của tệp trong các phiên bản khác nhau.
+Staging Area: Các thay đổi mà bạn đã sử dụng git add sẽ được lưu trữ tạm thời trong staging area, cũng nằm trong .git.
+Working Directory: Các thay đổi chưa được Git theo dõi (trước khi bạn thêm vào staging area) vẫn nằm trong working directory, nơi bạn chỉnh sửa các tệp.
++Git khôi phục thay đổi đã bị "stash" như thế nào?
+Khi bạn sử dụng git stash, Git lưu lại tất cả các thay đổi trong working directory và staging area vào một "stash", tức là một bộ lưu trữ tạm thời trong .git. Những thay đổi này được lưu dưới dạng một commit tạm thời, nhưng không phải trong lịch sử chính thức của repository.
+Git lưu thông tin về trạng thái của các tệp (bao gồm cả nội dung tệp và trạng thái staging) vào một stash object trong thư mục .git/refs/stash. Khi bạn sử dụng lệnh git stash pop hoặc git stash apply, Git sẽ khôi phục lại những thay đổi này chính xác vào working directory và staging area, giống như bạn chưa từng "stash" chúng.
+
+7. Khi xảy ra xung đột hợp nhất (merge conflict), tại sao Git không thể tự động giải quyết? Git sử dụng cơ chế nào để xác định sự khác biệt và yêu cầu sự can thiệp của lập trình viên?
+
+- Answer:
+Tại sao Git không thể tự động giải quyết?
+Git không thể tự động giải quyết xung đột hợp nhất vì:
+Thay đổi đối kháng nhau: Hai nhánh có thể thay đổi cùng một dòng trong cùng một tệp hoặc thay đổi cùng một phần cấu trúc tệp, và Git không thể biết phải giữ lại thay đổi nào (thay đổi từ nhánh này hay nhánh kia).
+Không có quy tắc nào để giải quyết tự động: Mặc dù Git có thể tự động hợp nhất những thay đổi không xung đột, nhưng khi có sự thay đổi trực tiếp đối kháng nhau, Git không có cách nào để chọn một thay đổi thay vì thay đổi kia mà không gây mất mát dữ liệu.
+Cơ chế Git sử dụng để xác định sự khác biệt:
+Git sử dụng thuật toán three-way merge để xác định sự khác biệt và tìm kiếm điểm chung giữa các thay đổi:
+
+Common ancestor (tổ tiên chung): Git xác định commit chung gần nhất giữa hai nhánh cần hợp nhất (commit cha chung của cả hai nhánh).
+Changes in both branches: Git so sánh các thay đổi trong hai nhánh với commit cha chung.
+Conflict detection: Nếu Git phát hiện sự thay đổi trong cùng một phần của tệp trong cả hai nhánh, nó không thể tự động hợp nhất và tạo ra xung đột, yêu cầu sự can thiệp của lập trình viên.
+Lý do yêu cầu can thiệp của lập trình viên:
+Khi xảy ra xung đột, Git sẽ đánh dấu phần tệp bị xung đột và yêu cầu lập trình viên can thiệp để quyết định nên giữ thay đổi nào. Lập trình viên sẽ phải mở tệp, xem xét các thay đổi, và chọn cách giải quyết xung đột (giữ một thay đổi, kết hợp cả hai, hoặc làm lại phần đó hoàn toàn).
+
+8.  Git duy trì lịch sử commit như thế nào? Cấu trúc cây (tree structure) của Git giúp tối ưu hóa việc theo dõi và truy xuất lịch sử ra sao?
+
+- Answer:
++Lịch sử commit trong Git:
+Git sử dụng các commit objects để ghi lại các thay đổi trong repository, mỗi commit bao gồm:
+
+Mã băm (hash) của commit: Một mã duy nhất (SHA-1 hash) để nhận diện commit.
+Thông tin về commit: Bao gồm thông tin tác giả, ngày giờ và thông điệp commit.
+Chỉ số (hash) của commit cha: Mỗi commit có thể có một hoặc nhiều commit cha, giúp tạo thành một chuỗi liên kết các commit (ví dụ: một commit có thể có một cha trong nhánh chính hoặc nhiều cha trong trường hợp merge).
++Cấu trúc cây (Tree Structure) trong Git:
+Git sử dụng một cấu trúc cây để tối ưu hóa việc theo dõi và truy xuất lịch sử commit:
+
+Tree objects: Mỗi commit chứa một tree object, đại diện cho cấu trúc thư mục của dự án tại thời điểm commit đó. Mỗi tree object có thể trỏ tới các blob objects (nội dung tệp) hoặc các tree objects con (cấu trúc thư mục con).
+
+Tạo sự liên kết giữa các đối tượng: Khi một commit mới được tạo, Git tạo một tree object mới và liên kết nó với các đối tượng blob (nội dung tệp) hiện tại. Điều này giúp Git ghi lại không chỉ các thay đổi trong tệp mà còn trong cấu trúc thư mục. Khi truy xuất lịch sử, Git có thể tìm thấy cấu trúc thư mục của dự án tại bất kỳ thời điểm nào.
+
++Tối ưu hóa việc theo dõi và truy xuất lịch sử:
+Hiệu quả trong việc truy xuất lịch sử: Mỗi commit chỉ lưu trữ sự khác biệt với commit trước đó (delta), thay vì sao chép toàn bộ tệp. Điều này giúp tiết kiệm bộ nhớ và làm cho việc theo dõi lịch sử trở nên hiệu quả hơn.
+
+DAG giúp Git theo dõi sự thay đổi trong không gian và thời gian: Cấu trúc DAG cho phép Git theo dõi một chuỗi các commit và các nhánh một cách có tổ chức. Các nhánh có thể tách ra hoặc hợp nhất lại, nhưng lịch sử của từng nhánh vẫn được duy trì một cách rõ ràng.
+
+Tính liên kết trong lịch sử: Việc duy trì các commit con (children) và cha (parents) tạo ra một lịch sử rõ ràng và liên kết giữa các thay đổi. Khi thực hiện các thao tác như git log, Git có thể dễ dàng truy xuất lịch sử commit từ bất kỳ commit nào trong quá khứ.
+
++Ví dụ về cấu trúc Git:
+Một commit có thể trỏ đến một tree object, mà tree object đó có thể chứa nhiều blob (tệp) hoặc tree con (thư mục con).
+Khi bạn tạo nhánh mới, Git chỉ tạo một con trỏ mới trỏ đến commit hiện tại, và chỉ khi có thay đổi (commit mới) thì mới tạo thêm các tree và blob mới.
+Khi bạn merge nhánh, Git kết hợp các lịch sử của các commit từ các nhánh khác nhau vào trong lịch sử của nhánh chính, với các commit con từ các nhánh được liên kết lại với nhau.
+
+9. Những lệnh này khác nhau như thế nào về bản chất? Tại sao git reset --hard có thể gây mất dữ liệu nhưng git revert thì không?
+
+- Answer:
++git reset --hard:
+Chức năng: Lệnh này sẽ thay đổi vị trí của HEAD và nhánh hiện tại về một commit cụ thể, và quay lại trạng thái commit đó. Điều này không chỉ thay đổi lịch sử commit mà còn làm thay đổi working directory và staging area.
+
+Tác động:
+
+Quá trình "hard reset" sẽ xóa bỏ tất cả các thay đổi trong staging area và working directory, đưa chúng về trạng thái của commit mà bạn đang reset đến.
+Nếu bạn có các thay đổi chưa được commit (cả trong working directory và staging area), chúng sẽ bị mất vĩnh viễn sau khi chạy lệnh git reset --hard.
+Lệnh này không tạo một commit mới, mà chỉ thay đổi lịch sử hiện tại và loại bỏ các thay đổi đã thực hiện.
+Lý do có thể gây mất dữ liệu:
+
+Vì git reset --hard xóa bỏ các thay đổi trong working directory và staging area, nếu bạn chưa commit hoặc chưa lưu lại các thay đổi quan trọng, chúng sẽ bị mất hoàn toàn khi reset.
++git revert:
+Chức năng: Lệnh này tạo ra một commit mới để "hoàn tác" một commit trước đó. Thay vì thay đổi HEAD hoặc lịch sử của repository, git revert tạo ra một commit mới có nội dung đảo ngược các thay đổi của commit đã chọn.
+Tác động:
+git revert không thay đổi lịch sử commit (các commit đã thực hiện vẫn còn nguyên trong lịch sử). Nó chỉ thêm một commit mới vào lịch sử với các thay đổi ngược lại.
+Nếu commit bạn muốn hoàn tác là một commit chứa các thay đổi trong tệp, git revert sẽ tạo một commit mới làm đảo ngược các thay đổi đó (như khôi phục lại tệp về trạng thái trước khi thay đổi).
+Lý do không gây mất dữ liệu:
+Vì git revert tạo ra một commit mới và không thay đổi lịch sử commit trước đó, các thay đổi được thực hiện trong các commit cũ vẫn còn tồn tại. Bạn luôn có thể quay lại trạng thái của các commit trước đó nếu cần. Các thay đổi sẽ không bị mất mà chỉ được hoàn tác bằng cách thêm một commit mới.
+
+10. Khi dùng git commit --amend, Git thực sự làm gì? Nó có chỉnh sửa commit cũ không, hay tạo ra một commit hoàn toàn mới?
+- Answer:
++Thay đổi commit hiện tại:
+Khi bạn chạy git commit --amend, Git sẽ tạo một commit mới với nội dung và thay đổi mới (bao gồm các thay đổi trong staging area và commit message mới, nếu bạn chọn thay đổi).
+Commit mới này sẽ thay thế commit trước đó (commit mà bạn đang sửa đổi) trong lịch sử. Tuy nhiên, commit mới có mã băm (hash) khác hoàn toàn so với commit cũ, vì mỗi commit trong Git đều có mã băm duy nhất.
++Các thay đổi có thể được chỉnh sửa:
+Staging Area: Khi bạn chạy git commit --amend, Git sẽ sử dụng các thay đổi trong staging area để tạo commit mới. Nếu bạn đã thay đổi và thêm tệp vào staging area, các thay đổi này sẽ được đưa vào commit mới.
+Commit Message: Bạn có thể sửa lại thông điệp commit cũ. Khi bạn chạy lệnh này, Git sẽ mở trình soạn thảo văn bản để bạn có thể chỉnh sửa thông điệp commit.
++Tạo commit mới:
+Commit hash mới: Vì Git tạo ra một commit mới (với nội dung mới hoặc thông điệp mới), commit này có mã băm (hash) khác so với commit cũ, mặc dù về mặt logic, commit này sẽ giống hệt với commit trước đó ngoại trừ những thay đổi bạn đã thực hiện.
++Lịch sử commit:
+Commit cũ bị thay thế: Lệnh git commit --amend thay thế commit hiện tại, vì vậy commit cũ sẽ bị loại bỏ khỏi lịch sử (nó vẫn tồn tại trong Git trong một khoảng thời gian, nhưng bạn không thể dễ dàng truy cập nó sau khi commit mới được tạo).
